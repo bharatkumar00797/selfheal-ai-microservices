@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SelfHeal</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">SH</span>
+      <div>
+        <h1>SelfHeal</h1>
+        <p class="tagline">AI self-healing microservices control loop</p>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <span id="mode-badge" class="pill">loading…</span>
+      <span id="version" class="muted small"></span>
+      <a class="small" href="/docs" target="_blank" rel="noopener">API docs</a>
+    </div>
+  </header>
+  <div id="sim-banner" class="banner">
+    Simulated cluster: anomalies, diagnoses and remediations run against a deterministic
+    microservice simulator. No real infrastructure is touched.
+  </div>
+
+  <main class="layout">
+    <aside class="sidebar">
+      <section class="card">
+        <h2>Start a run</h2>
+        <form id="start-form">
+          <label for="scenario">Scenario</label>
+          <select id="scenario" required></select>
+          <p id="scenario-desc" class="muted small"></p>
+          <label for="provider">Provider</label>
+          <select id="provider"></select>
+          <div id="key-row" hidden>
+            <label for="api-key">API key</label>
+            <input id="api-key" type="password" autocomplete="off" placeholder="X-API-Key">
+            <p class="muted small">Kept in this browser tab only (sessionStorage).</p>
+          </div>
+          <button id="start-btn" type="submit" class="primary">Run scenario</button>
+          <p id="start-error" class="error small" role="alert"></p>
+        </form>
+      </section>
+      <section class="card">
+        <div class="card-head">
+          <h2>Runs</h2>
+          <button id="refresh-btn" type="button" class="ghost small">Refresh</button>
+        </div>
+        <ul id="run-list" class="run-list"></ul>
+        <p id="list-empty" class="muted small">No runs yet. Pick a scenario above.</p>
+      </section>
+    </aside>
+
+    <section class="content">
+      <div id="empty-state" class="card empty">
+        <h2>No run selected</h2>
+        <p class="muted">Start a packaged chaos scenario to watch the control loop detect
+          anomalies, rank hypotheses, apply allowlisted actions and verify the fix.</p>
+      </div>
+
+      <div id="run-view" hidden>
+        <div class="card run-head">
+          <div class="run-title-row">
+            <h2 id="run-title"></h2>
+          </div>
+          <div class="meta-row">
+            <span id="run-state" class="pill"></span>
+            <span id="run-provider" class="pill subtle"></span>
+            <span class="muted small">ID <code id="run-id"></code></span>
+            <span class="muted small">Ticks: <span id="run-ticks"></span></span>
+            <span id="spinner" class="spinner" hidden aria-label="running"></span>
+          </div>
+          <p id="run-summary" class="summary"></p>
+          <p id="run-error" class="error small"></p>
+        </div>
+
+        <nav class="tabs" role="tablist">
+          <button type="button" role="tab" data-tab="topology">Topology</button>
+          <button type="button" role="tab" data-tab="timeline">Timeline</button>
+          <button type="button" role="tab" data-tab="incidents">Incidents</button>
+          <button type="button" role="tab" data-tab="approvals">Approvals <span id="pending-count" class="count" hidden></span></button>
+        </nav>
+
+        <section class="card tab-panel" data-panel="topology">
+          <div id="topology" class="topology"></div>
+        </section>
+        <section class="card tab-panel" data-panel="timeline">
+          <ol id="timeline" class="timeline"></ol>
+        </section>
+        <section class="card tab-panel" data-panel="incidents">
+          <div id="incidents" class="incidents"></div>
+        </section>
+        <section class="card tab-panel" data-panel="approvals">
+          <div class="approver-row">
+            <label for="approver">Approver name</label>
+            <input id="approver" maxlength="80" placeholder="e.g. Priya (on-call)">
+          </div>
+          <p class="muted small">Approving runs the allowlisted action against the simulated
+            cluster and continues verification. Rejecting escalates the incident.</p>
+          <div id="approvals"></div>
+          <p id="decision-error" class="error small" role="alert"></p>
+        </section>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

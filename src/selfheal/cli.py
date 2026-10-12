@@ -1,11 +1,13 @@
-"""Command line interface: `selfheal scenarios | run <scenario>`."""
+"""Command line interface: `selfheal scenarios | run <scenario> | serve`."""
 
 from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from collections.abc import Sequence
+from dataclasses import replace
 
 from . import __version__
 from .engine import run_scenario
@@ -71,6 +73,32 @@ def _cmd_run(args: argparse.Namespace) -> int:
     return 0 if report["passed"] or args.dry_run else 1
 
 
+def _cmd_serve(args: argparse.Namespace) -> int:
+    import uvicorn
+
+    from selfheal.api import ApiSettings, create_app
+
+    try:
+        port = args.port or int(os.getenv("PORT") or 8000)
+        settings = ApiSettings.from_env()
+    except ValueError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+    if args.dev:
+        settings = replace(settings, dev_mode=True)
+    if settings.access_mode == "dev" and args.host not in {"127.0.0.1", "::1", "localhost"}:
+        print("warning: dev mode without API keys is exposed beyond localhost", file=sys.stderr)
+    mode = {
+        "api-key": "API-key auth (operator/approver roles)",
+        "dev": "dev mode (no auth)",
+        "public-demo": "public demo (packaged scenarios + mock provider, simulated actions)",
+    }[settings.access_mode]
+    sync = " | sync runs" if settings.sync_runs else ""
+    print(f"SelfHeal {__version__} on http://{args.host}:{port} | {mode}{sync}", flush=True)
+    uvicorn.run(create_app(settings), host=args.host, port=port, log_level="info")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="selfheal", description="AI self-healing microservices control loop"
@@ -86,6 +114,14 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--dry-run", action="store_true", help="plan only, never execute")
     run.add_argument("--approver", default=None, help="auto-approve protected actions as NAME")
     run.add_argument("--json", action="store_true", help="print the full JSON report")
+    serve = sub.add_parser("serve", help="start the REST API and web dashboard")
+    serve.add_argument(
+        "--host",
+        default=os.getenv("HOST", "127.0.0.1"),
+        help="bind address (default: $HOST or 127.0.0.1)",
+    )
+    serve.add_argument("--port", type=int, default=None, help="port (default: $PORT or 8000)")
+    serve.add_argument("--dev", action="store_true", help="dev mode: no API key required")
     return p
 
 
@@ -93,6 +129,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.command == "scenarios":
         return _cmd_scenarios()
+    if args.command == "serve":
+        return _cmd_serve(args)
     if args.ticks is not None and not 1 <= args.ticks <= 1000:
         print("error: --ticks must be between 1 and 1000", file=sys.stderr)
         return 2
