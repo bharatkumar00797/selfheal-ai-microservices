@@ -27,3 +27,19 @@ jobs:
         run: mypy
       - name: Test
         run: pytest
+
+  docker:
+    name: Docker image smoke test
+    runs-on: ubuntu-24.04
+    needs: test
+    steps:
+      - uses: actions/checkout@v5
+      - name: Validate compose file
+        run: docker compose config --quiet
+      - name: Build and start the hardened container
+        run: docker compose up --build --detach --wait --wait-timeout 180
+      - name: Smoke test every packaged scenario
+        run: python3 scripts/smoke_test.py http://127.0.0.1:8000
+      - name: Tear down
+        if: always()
+        run: docker compose down --volumes
