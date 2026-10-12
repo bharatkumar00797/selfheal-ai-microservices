@@ -265,6 +265,20 @@ class Healer:
         self._execute(inc, inc.action, approved_by=approver)
         return inc
 
+    def reject(self, incident_id: str, approver: str, reason: str = "") -> Incident:
+        """Human declines a protected action; escalate instead of executing."""
+        inc = next((i for i in self.incidents if i.id == incident_id), None)
+        if inc is None or inc.status is not IncidentStatus.AWAITING_APPROVAL or inc.action is None:
+            raise ValueError("no pending approval for that incident")
+        approver = approver.strip()[:60]
+        if not approver:
+            raise ValueError("approver name required")
+        reason = " ".join(reason.split())[:500]
+        note = f"rejected by {approver}" + (f": {reason}" if reason else "")
+        self._emit(inc, EventType.BLOCKED, note)
+        self._escalate(inc, f"human rejected the remediation ({approver})")
+        return inc
+
     def _execute(self, inc: Incident, action: Action, approved_by: str | None = None) -> None:
         st = self.cluster.state(action.service)
         inc.before_replicas, inc.before_version = st.replicas, st.version
