@@ -1,0 +1,36 @@
+# Local / single-host deployment with a hardened container.
+#   docker compose up --build        -> http://localhost:8000
+# Optional settings are read from .env (see .env.example). Without API keys the server runs as a
+# public demo: packaged scenarios, offline mock provider, actions against the simulator only.
+services:
+  selfheal:
+    build: .
+    image: selfheal-ai-microservices:local
+    ports:
+      - "${SELFHEAL_HOST_PORT:-8000}:8000"
+    environment:
+      PORT: "8000"
+    env_file:
+      - path: .env
+        required: false
+    read_only: true
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,size=64m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 128
+    mem_limit: 512m
+    cpus: 1
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request as u; u.urlopen('http://127.0.0.1:8000/healthz', timeout=4)"
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3

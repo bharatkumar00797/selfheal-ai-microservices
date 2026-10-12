@@ -1,0 +1,32 @@
+# Fly.io: `fly launch --copy-config --no-deploy` then `fly deploy`
+# Without SELFHEAL_API_KEYS the app is a public demo (scenarios + mock provider, simulated actions).
+# Secrets: `fly secrets set SELFHEAL_API_KEYS=... SELFHEAL_APPROVER_KEYS=...`
+app = "selfheal-ai-microservices"
+primary_region = "bom"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8080"
+  SELFHEAL_PROVIDER = "mock"
+  SELFHEAL_TRUST_PROXY = "true"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    grace_period = "15s"
+    interval = "30s"
+    method = "GET"
+    path = "/healthz"
+    timeout = "5s"
+
+[[vm]]
+  memory = "512mb"
+  cpu_kind = "shared"
+  cpus = 1

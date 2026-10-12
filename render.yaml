@@ -1,0 +1,21 @@
+# Render Blueprint: https://render.com/docs/blueprint-spec
+# Deploys the Docker image as a public demo: packaged scenarios, offline mock provider and
+# actions that only ever run against the simulated cluster. To lock it down or use a real
+# LLM, add SELFHEAL_API_KEYS / SELFHEAL_APPROVER_KEYS (and SELFHEAL_PROVIDER, SELFHEAL_API_KEY, ...)
+# as secret environment variables in the Render dashboard.
+services:
+  - type: web
+    name: selfheal-ai-microservices
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: SELFHEAL_PROVIDER
+        value: mock
+      - key: SELFHEAL_TRUST_PROXY
+        value: "true"
+      - key: SELFHEAL_MAX_CONCURRENT_RUNS
+        value: "1"
