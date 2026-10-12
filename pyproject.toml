@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "selfheal-ai-microservices"
-version = "0.1.0"
+version = "1.0.0"
 description = "AI self-healing microservices platform: anomaly detection, LLM-assisted diagnosis and guarded, verified auto-remediation."
 readme = "README.md"
 license = { text = "MIT" }
@@ -12,7 +12,7 @@ authors = [{ name = "Bharatkumar Chandvani" }]
 requires-python = ">=3.11"
 keywords = ["ai", "llm", "ai-agents", "aiops", "self-healing", "microservices", "sre"]
 classifiers = [
-  "Development Status :: 3 - Alpha",
+  "Development Status :: 5 - Production/Stable",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
