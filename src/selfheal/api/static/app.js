@@ -458,11 +458,13 @@
   });
 
   async function boot() {
-    setTab(parseHash().tab || "topology");
+    // Capture deep-link params before setTab/writeHash can rewrite location.hash
+    // (writeHash omits run= until state.currentId is set).
+    const initial = parseHash();
+    setTab(initial.tab || "topology");
     await loadConfig();
     await refreshRuns();
-    const want = parseHash().run;
-    if (want) await selectRun(want);
+    if (initial.run) await selectRun(initial.run);
   }
 
   boot().catch((err) => {
