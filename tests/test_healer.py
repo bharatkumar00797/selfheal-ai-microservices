@@ -79,4 +79,6 @@ def test_cli(capsys):
 def test_cli_version(capsys):
     with pytest.raises(SystemExit):
         main(["--version"])
-    assert "selfheal 0.1.0" in capsys.readouterr().out
+    from selfheal import __version__
+
+    assert f"selfheal {__version__}" in capsys.readouterr().out
