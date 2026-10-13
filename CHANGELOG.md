@@ -8,7 +8,7 @@ All notable changes to this project are documented here. The format follows
 
 ## [1.0.0] - 2026-10-12
 
-First stable release.
+First public release.
 
 ### Added
 
